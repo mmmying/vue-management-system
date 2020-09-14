@@ -20,7 +20,15 @@ import {
   Menu,
   Submenu,
   MenuItem,
-  Divider
+  Divider,
+  Breadcrumb,
+  Pagination,
+  Table,
+  TableColumn,
+  Switch,
+  Row,
+  Col,
+  Dialog
 } from 'element-ui'
 // Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }; // 全局配置
 Vue.use(Button)
@@ -36,6 +44,15 @@ Vue.use(Menu)
 Vue.use(Submenu)
 Vue.use(MenuItem)
 Vue.use(Divider)
+Vue.use(Breadcrumb)
+Vue.use(Pagination)
+Vue.use(Table)
+Vue.use(TableColumn)
+Vue.use(Switch)
+Vue.use(Row)
+Vue.use(Col)
+Vue.use(Dialog)
+
 Vue.prototype.$message = Message
 
 Vue.config.productionTip = false
