@@ -10,7 +10,7 @@
         ></el-input>
       </el-col>
       <el-col :span="12">
-        <el-button type="primary" @click="dialogFormVisible = true">添加用户</el-button>
+        <el-button type="primary" @click="addDialogVisible = true">添加用户</el-button>
       </el-col>
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
@@ -31,7 +31,7 @@
             icon="el-icon-edit"
             circle
             size="small"
-            @click="editUser(scope.row)"
+            @click="openEditDialog(scope.row)"
           ></el-button>
           <el-button
             type="danger"
@@ -45,7 +45,7 @@
             icon="el-icon-setting"
             circle
             size="small"
-            @click="setRole(scope.row)"
+            @click="openSetDialog(scope.row)"
           ></el-button>
         </template>
       </el-table-column>
@@ -60,24 +60,72 @@
       :total="total"
     ></el-pagination>
 
-    <el-dialog title="添加用户" :visible.sync="dialogFormVisible" center @close="addDialogClosed">
-      <el-form :model="form" :rules="rules" ref="form">
+    <!-- 添加用户弹框 -->
+    <el-dialog title="添加用户" :visible.sync="addDialogVisible" center @close="addDialogClosed">
+      <el-form :model="addForm" :rules="rules" ref="addForm">
         <el-form-item label="用户名" prop="username" label-width="100px">
-          <el-input v-model="form.username" autocomplete="off"></el-input>
+          <el-input v-model="addForm.username" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password" label-width="100px">
-          <el-input type="password" v-model="form.password" autocomplete="off"></el-input>
+          <el-input type="password" v-model="addForm.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email" label-width="100px">
-          <el-input v-model="form.email" autocomplete="off"></el-input>
+          <el-input v-model="addForm.email" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="电话" prop="mobile" label-width="100px">
-          <el-input v-model="form.mobile" autocomplete="off"></el-input>
+          <el-input v-model="addForm.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="addDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="addUser">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 编辑用户弹框 -->
+    <el-dialog title="编辑用户" :visible.sync="editDialogVisible" center>
+      <el-form :model="editForm" :rules="rules" ref="form">
+        <el-form-item label="用户名" label-width="100px">
+          <el-input v-model="editForm.username" disabled autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email" label-width="100px">
+          <el-input v-model="editForm.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" prop="mobile" label-width="100px">
+          <el-input v-model="editForm.mobile" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUser">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 设置用户角色弹框 -->
+    <el-dialog
+      title="设置用户角色"
+      :visible.sync="setDialogVisible"
+      center
+      width="30%"
+      @close="setDialogClosed"
+    >
+      <el-form :rules="rules" ref="form">
+        <el-form-item label="当前用户" label-width="100px">{{userInfo.username}}</el-form-item>
+        <el-form-item label="当前角色" label-width="100px">{{userInfo.role}}</el-form-item>
+        <el-form-item label="设置新角色" label-width="100px">
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option
+              v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="setDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="setRole">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -94,8 +142,8 @@ export default {
       },
       total: 0,
       searchKey: '',
-      dialogFormVisible: false,
-      form: {
+      addDialogVisible: false,
+      addForm: {
         username: '',
         password: '',
         email: '',
@@ -113,6 +161,20 @@ export default {
           { required: true, message: '请输入手机号', trigger: 'change' },
         ],
       },
+      editDialogVisible: false,
+      editForm: {
+        username: '',
+        email: '',
+        mobile: '',
+      },
+      setDialogVisible: false,
+      userInfo: {
+        id: '',
+        username: '',
+        role: '',
+      },
+      rolesList: [],
+      selectedRoleId: '',
     }
   },
   mounted() {
@@ -143,12 +205,11 @@ export default {
       this.queryUserList()
     },
     changeStatus(row) {
-      console.log(row)
       this.$axios
         .put(`users/${row.id}/state/${row.mg_state}`)
         .then(({ data: res }) => {
           if (res.meta.status === 200) {
-            this.$message.success(res.meta.msg)
+            this.$message.success('设置状态成功')
           } else {
             this.$message.error(res.meta.msg)
           }
@@ -159,12 +220,11 @@ export default {
     },
     addUser() {
       this.$axios
-        .post('users', this.form)
+        .post('users', this.addForm)
         .then(({ data: res }) => {
-          console.log(res)
           if (res.meta.status === 201) {
-            this.dialogFormVisible = false
-            this.$message.success(res.meta.msg)
+            this.addDialogVisible = false
+            this.$message.success('创建成功')
             this.queryUserList()
           } else {
             this.$message.error(res.meta.msg)
@@ -175,15 +235,39 @@ export default {
         })
     },
     addDialogClosed() {
-      this.$refs.form.resetFields()
+      this.$refs.addForm.resetFields()
     },
-    editUser() {},
+    openEditDialog(row) {
+      this.editDialogVisible = true
+      this.editForm = {
+        id: row.id,
+        username: row.username,
+        email: row.email,
+        mobile: row.mobile,
+      }
+    },
+    editUser() {
+      this.$axios
+        .put(`users/${this.editForm.id}`, this.editForm)
+        .then(({ data: res }) => {
+          if (res.meta.status === 200) {
+            this.editDialogVisible = false
+            this.$message.success('更新成功')
+            this.queryUserList()
+          } else {
+            this.$message.error(re.meta.msg)
+          }
+        })
+        .catch(() => {
+          this.$message.error('更新失败')
+        })
+    },
     deleteUser(row) {
       this.$axios
         .delete(`users/${row.id}`)
         .then(({ data: res }) => {
           if (res.meta.status === 200) {
-            this.$message.success(res.meta.msg)
+            this.$message.success('删除成功')
             if (
               (this.pagination.pageindex - 1) * this.pagination.pagesize + 1 ===
               this.total
@@ -199,7 +283,38 @@ export default {
           this.$message.error('删除失败')
         })
     },
-    setRole() {},
+    openSetDialog(row) {
+      this.setDialogVisible = true
+      this.userInfo = {
+        id: row.id,
+        username: row.username,
+        role: row.role_name,
+      }
+      this.queryRoleList()
+    },
+    queryRoleList() {
+      this.$axios('roles').then(({ data: res }) => {
+        this.rolesList = res.data
+      })
+    },
+    setRole() {
+      this.$axios
+        .put(`users/${this.userInfo.id}/role`, {
+          rid: this.selectedRoleId,
+        })
+        .then(({ data: res }) => {
+          if (res.meta.status === 200) {
+            this.setDialogVisible = false
+            this.$message.success('设置角色成功')
+            this.queryUserList()
+          } else {
+            this.$message.error(res.meta.msg)
+          }
+        })
+    },
+    setDialogClosed() {
+      this.selectedRoleId = ''
+    },
   },
 }
 </script>

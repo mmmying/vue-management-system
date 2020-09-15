@@ -28,7 +28,9 @@ import {
   Switch,
   Row,
   Col,
-  Dialog
+  Dialog,
+  Select,
+  Option
 } from 'element-ui'
 // Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }; // 全局配置
 Vue.use(Button)
@@ -52,6 +54,8 @@ Vue.use(Switch)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Dialog)
+Vue.use(Select)
+Vue.use(Option)
 
 Vue.prototype.$message = Message
 
