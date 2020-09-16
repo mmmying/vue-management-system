@@ -30,7 +30,8 @@ import {
   Col,
   Dialog,
   Select,
-  Option
+  Option,
+  MessageBox
 } from 'element-ui'
 // Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }; // 全局配置
 Vue.use(Button)
@@ -56,6 +57,9 @@ Vue.use(Col)
 Vue.use(Dialog)
 Vue.use(Select)
 Vue.use(Option)
+
+Vue.prototype.$message = Message
+Vue.prototype.$confirm = MessageBox.confirm
 
 Vue.prototype.$message = Message
 

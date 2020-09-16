@@ -84,7 +84,7 @@
 
     <!-- 编辑用户弹框 -->
     <el-dialog title="编辑用户" :visible.sync="editDialogVisible" center>
-      <el-form :model="editForm" :rules="rules" ref="form">
+      <el-form :model="editForm" :rules="rules" ref="editForm">
         <el-form-item label="用户名" label-width="100px">
           <el-input v-model="editForm.username" disabled autocomplete="off"></el-input>
         </el-form-item>
@@ -109,7 +109,7 @@
       width="30%"
       @close="setDialogClosed"
     >
-      <el-form :rules="rules" ref="form">
+      <el-form>
         <el-form-item label="当前用户" label-width="100px">{{userInfo.username}}</el-form-item>
         <el-form-item label="当前角色" label-width="100px">{{userInfo.role}}</el-form-item>
         <el-form-item label="设置新角色" label-width="100px">
@@ -134,6 +134,23 @@
 <script>
 export default {
   data() {
+    const checkEmail = (rule, value, callback) => {
+      const regx = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/
+      if (!regx.test(value)) {
+        callback(new Error('请输入正确的邮箱'))
+      } else {
+        callback()
+      }
+    }
+    const checkMobile = (rule, value, callback) => {
+      const regx = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/
+      if (!regx.test(value)) {
+        callback(new Error('请输入正确的手机号'))
+      } else {
+        callback()
+      }
+    }
+
     return {
       tableData: [],
       pagination: {
@@ -156,9 +173,13 @@ export default {
         password: [
           { required: true, message: '请输入密码', trigger: 'change' },
         ],
-        email: [{ required: true, message: '请输入邮箱', trigger: 'change' }],
+        email: [
+          { required: true, message: '请输入邮箱', trigger: 'change' },
+          { validator: checkEmail, trigger: 'change' },
+        ],
         mobile: [
           { required: true, message: '请输入手机号', trigger: 'change' },
+          { validator: checkMobile, trigger: 'change' },
         ],
       },
       editDialogVisible: false,
@@ -219,20 +240,24 @@ export default {
         })
     },
     addUser() {
-      this.$axios
-        .post('users', this.addForm)
-        .then(({ data: res }) => {
-          if (res.meta.status === 201) {
-            this.addDialogVisible = false
-            this.$message.success('创建成功')
-            this.queryUserList()
-          } else {
-            this.$message.error(res.meta.msg)
-          }
-        })
-        .catch(() => {
-          this.$message.error('创建失败')
-        })
+      this.$refs['addForm'].validate((valid) => {
+        if (valid) {
+          this.$axios
+            .post('users', this.addForm)
+            .then(({ data: res }) => {
+              if (res.meta.status === 201) {
+                this.addDialogVisible = false
+                this.$message.success('创建成功')
+                this.queryUserList()
+              } else {
+                this.$message.error(res.meta.msg)
+              }
+            })
+            .catch(() => {
+              this.$message.error('创建失败')
+            })
+        }
+      })
     },
     addDialogClosed() {
       this.$refs.addForm.resetFields()
@@ -247,41 +272,52 @@ export default {
       }
     },
     editUser() {
-      this.$axios
-        .put(`users/${this.editForm.id}`, this.editForm)
-        .then(({ data: res }) => {
-          if (res.meta.status === 200) {
-            this.editDialogVisible = false
-            this.$message.success('更新成功')
-            this.queryUserList()
-          } else {
-            this.$message.error(re.meta.msg)
-          }
-        })
-        .catch(() => {
-          this.$message.error('更新失败')
-        })
+      this.$refs['editForm'].validate((valid) => {
+        if (valid) {
+          this.$axios
+            .put(`users/${this.editForm.id}`, this.editForm)
+            .then(({ data: res }) => {
+              if (res.meta.status === 200) {
+                this.editDialogVisible = false
+                this.$message.success('更新成功')
+                this.queryUserList()
+              } else {
+                this.$message.error(re.meta.msg)
+              }
+            })
+            .catch(() => {
+              this.$message.error('更新失败')
+            })
+        }
+      })
     },
     deleteUser(row) {
-      this.$axios
-        .delete(`users/${row.id}`)
-        .then(({ data: res }) => {
-          if (res.meta.status === 200) {
-            this.$message.success('删除成功')
-            if (
-              (this.pagination.pageindex - 1) * this.pagination.pagesize + 1 ===
-              this.total
-            ) {
-              this.pagination.pageindex -= 1
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(() => {
+        this.$axios
+          .delete(`users/${row.id}`)
+          .then(({ data: res }) => {
+            if (res.meta.status === 200) {
+              this.$message.success('删除成功')
+              if (
+                (this.pagination.pageindex - 1) * this.pagination.pagesize +
+                  1 ===
+                this.total
+              ) {
+                this.pagination.pageindex -= 1
+              }
+              this.queryUserList()
+            } else {
+              this.$message.error(res.meta.msg)
             }
-            this.queryUserList()
-          } else {
-            this.$message.error(res.meta.msg)
-          }
-        })
-        .catch(() => {
-          this.$message.error('删除失败')
-        })
+          })
+          .catch(() => {
+            this.$message.error('删除失败')
+          })
+      })
     },
     openSetDialog(row) {
       this.setDialogVisible = true
