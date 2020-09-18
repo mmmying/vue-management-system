@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row :gutter="20" class="header-wrap">
+    <el-row :gutter="20">
       <el-col :span="8">
         <el-input
           placeholder="请输入内容"
@@ -121,21 +121,21 @@
 export default {
   data() {
     const checkEmail = (rule, value, callback) => {
-      const regx = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/
+      const regx = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
       if (!regx.test(value)) {
-        callback(new Error('请输入正确的邮箱'))
+        callback(new Error('请输入正确的邮箱'));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
     const checkMobile = (rule, value, callback) => {
-      const regx = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/
+      const regx = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/;
       if (!regx.test(value)) {
-        callback(new Error('请输入正确的手机号'))
+        callback(new Error('请输入正确的手机号'));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
 
     return {
       tableData: [],
@@ -177,10 +177,10 @@ export default {
       rolesList: [],
       selectedRoleId: '',
       operation: 'add',
-    }
+    };
   },
   mounted() {
-    this.queryUserList()
+    this.queryUserList();
   },
   methods: {
     queryUserList() {
@@ -193,32 +193,32 @@ export default {
           },
         })
         .then(({ data: res }) => {
-          this.tableData = res.data.users
-          this.total = res.data.total
-        })
+          this.tableData = res.data.users;
+          this.total = res.data.total;
+        });
     },
     handleSizeChange(val) {
-      this.pagination.pagesize = val
-      this.pagination.pageindex = 1
-      this.queryUserList()
+      this.pagination.pagesize = val;
+      this.pagination.pageindex = 1;
+      this.queryUserList();
     },
     handleCurrentChange(val) {
-      this.pagination.pageindex = val
-      this.queryUserList()
+      this.pagination.pageindex = val;
+      this.queryUserList();
     },
     changeStatus(row) {
       this.$axios
         .put(`users/${row.id}/state/${row.mg_state}`)
         .then(({ data: res }) => {
           if (res.meta.status === 200) {
-            this.$message.success('设置状态成功')
+            this.$message.success('设置状态成功');
           } else {
-            this.$message.error(res.meta.msg)
+            this.$message.error(res.meta.msg);
           }
         })
         .catch((e) => {
-          this.$message.error('设置状态失败')
-        })
+          this.$message.error('设置状态失败');
+        });
     },
     openAddAndEditDialog(operation, row) {
       if (operation === 'edit') {
@@ -227,10 +227,10 @@ export default {
           username: row.username,
           email: row.email,
           mobile: row.mobile,
-        }
+        };
       }
-      this.operation = operation
-      this.addAndEditDialogVisible = true
+      this.operation = operation;
+      this.addAndEditDialogVisible = true;
     },
     confirm() {
       this.$refs['form'].validate((valid) => {
@@ -240,37 +240,37 @@ export default {
               .post('users', this.form)
               .then(({ data: res }) => {
                 if (res.meta.status === 201) {
-                  this.addAndEditDialogVisible = false
-                  this.$message.success('创建成功')
-                  this.queryUserList()
+                  this.addAndEditDialogVisible = false;
+                  this.$message.success('创建成功');
+                  this.queryUserList();
                 } else {
-                  this.$message.error(res.meta.msg)
+                  this.$message.error(res.meta.msg);
                 }
               })
               .catch(() => {
-                this.$message.error('创建失败')
-              })
+                this.$message.error('创建失败');
+              });
           } else {
             this.$axios
               .put(`users/${this.form.id}`, this.form)
               .then(({ data: res }) => {
                 if (res.meta.status === 200) {
-                  this.addAndEditDialogVisible = false
-                  this.$message.success('更新成功')
-                  this.queryUserList()
+                  this.addAndEditDialogVisible = false;
+                  this.$message.success('更新成功');
+                  this.queryUserList();
                 } else {
-                  this.$message.error(re.meta.msg)
+                  this.$message.error(re.meta.msg);
                 }
               })
               .catch(() => {
-                this.$message.error('更新失败')
-              })
+                this.$message.error('更新失败');
+              });
           }
         }
-      })
+      });
     },
     addAndEditDialogClosed() {
-      this.$refs.form.resetFields()
+      this.$refs.form.resetFields();
     },
     deleteUser(row) {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -282,37 +282,37 @@ export default {
           .delete(`users/${row.id}`)
           .then(({ data: res }) => {
             if (res.meta.status === 200) {
-              this.$message.success('删除成功')
+              this.$message.success('删除成功');
               if (
                 (this.pagination.pageindex - 1) * this.pagination.pagesize +
                   1 ===
                 this.total
               ) {
-                this.pagination.pageindex -= 1
+                this.pagination.pageindex -= 1;
               }
-              this.queryUserList()
+              this.queryUserList();
             } else {
-              this.$message.error(res.meta.msg)
+              this.$message.error(res.meta.msg);
             }
           })
           .catch(() => {
-            this.$message.error('删除失败')
-          })
-      })
+            this.$message.error('删除失败');
+          });
+      });
     },
     openSetDialog(row) {
-      this.settingDialogVisible = true
+      this.settingDialogVisible = true;
       this.userInfo = {
         id: row.id,
         username: row.username,
         role: row.role_name,
-      }
-      this.queryRoleList()
+      };
+      this.queryRoleList();
     },
     queryRoleList() {
       this.$axios('roles').then(({ data: res }) => {
-        this.rolesList = res.data
-      })
+        this.rolesList = res.data;
+      });
     },
     setRole() {
       this.$axios
@@ -321,22 +321,19 @@ export default {
         })
         .then(({ data: res }) => {
           if (res.meta.status === 200) {
-            this.settingDialogVisible = false
-            this.$message.success('设置角色成功')
-            this.queryUserList()
+            this.settingDialogVisible = false;
+            this.$message.success('设置角色成功');
+            this.queryUserList();
           } else {
-            this.$message.error(res.meta.msg)
+            this.$message.error(res.meta.msg);
           }
-        })
+        });
     },
     setDialogClosed() {
-      this.selectedRoleId = ''
+      this.selectedRoleId = '';
     },
   },
-}
+};
 </script>
 <style lang="scss" scoped>
-.header-wrap {
-  margin-bottom: 10px;
-}
 </style>
