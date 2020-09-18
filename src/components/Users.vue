@@ -10,7 +10,7 @@
         ></el-input>
       </el-col>
       <el-col :span="12">
-        <el-button type="primary" @click="openAddAndEditDialog('add')">添加用户</el-button>
+        <el-button type="primary" @click="addUser()">添加用户</el-button>
       </el-col>
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
@@ -26,27 +26,12 @@
       </el-table-column>
       <el-table-column prop="operation" label="操作" width="180">
         <template slot-scope="scope">
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            circle
-            size="small"
-            @click="openAddAndEditDialog('edit',scope.row)"
-          ></el-button>
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            circle
-            size="small"
-            @click="deleteUser(scope.row)"
-          ></el-button>
-          <el-button
-            type="warning"
-            icon="el-icon-setting"
-            circle
-            size="small"
-            @click="openSetDialog(scope.row)"
-          ></el-button>
+          <operation-btns
+            :data="scope.row"
+            @editData="editUser"
+            @deleteData="deleteUser"
+            @setOther="openSetDialog"
+          ></operation-btns>
         </template>
       </el-table-column>
     </el-table>
@@ -118,6 +103,7 @@
 </template>
 
 <script>
+import OperationBtns from './common/OperationBtns.vue';
 export default {
   data() {
     const checkEmail = (rule, value, callback) => {
@@ -179,6 +165,7 @@ export default {
       operation: 'add',
     };
   },
+  components: { OperationBtns },
   mounted() {
     this.queryUserList();
   },
@@ -220,16 +207,18 @@ export default {
           this.$message.error('设置状态失败');
         });
     },
-    openAddAndEditDialog(operation, row) {
-      if (operation === 'edit') {
-        this.form = {
-          id: row.id,
-          username: row.username,
-          email: row.email,
-          mobile: row.mobile,
-        };
-      }
-      this.operation = operation;
+    addUser() {
+      this.operation = 'add';
+      this.addAndEditDialogVisible = true;
+    },
+    editUser(row) {
+      this.form = {
+        id: row.id,
+        username: row.username,
+        email: row.email,
+        mobile: row.mobile,
+      };
+      this.operation = 'edit';
       this.addAndEditDialogVisible = true;
     },
     confirm() {
