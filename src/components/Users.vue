@@ -30,7 +30,7 @@
             :data="scope.row"
             @editData="editUser"
             @deleteData="deleteUser"
-            @setOther="openSetDialog"
+            @setOther="setUserRole"
           ></operation-btns>
         </template>
       </el-table-column>
@@ -78,7 +78,7 @@
       :visible.sync="settingDialogVisible"
       center
       width="30%"
-      @close="setDialogClosed"
+      @close="settingDialogClosed"
     >
       <el-form>
         <el-form-item label="当前用户" label-width="100px">{{userInfo.username}}</el-form-item>
@@ -96,7 +96,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="settingDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="setRole">确 定</el-button>
+        <el-button type="primary" @click="confirmSet">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -289,7 +289,7 @@ export default {
           });
       });
     },
-    openSetDialog(row) {
+    setUserRole(row) {
       this.settingDialogVisible = true;
       this.userInfo = {
         id: row.id,
@@ -303,7 +303,7 @@ export default {
         this.rolesList = res.data;
       });
     },
-    setRole() {
+    confirmSet() {
       this.$axios
         .put(`users/${this.userInfo.id}/role`, {
           rid: this.selectedRoleId,
@@ -318,7 +318,7 @@ export default {
           }
         });
     },
-    setDialogClosed() {
+    settingDialogClosed() {
       this.selectedRoleId = '';
     },
   },
