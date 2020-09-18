@@ -10,7 +10,7 @@
         ></el-input>
       </el-col>
       <el-col :span="12">
-        <el-button type="primary" @click="addDialogVisible = true">添加用户</el-button>
+        <el-button type="primary" @click="openAddAndEditDialog('add')">添加用户</el-button>
       </el-col>
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
@@ -31,7 +31,7 @@
             icon="el-icon-edit"
             circle
             size="small"
-            @click="openEditDialog(scope.row)"
+            @click="openAddAndEditDialog('edit',scope.row)"
           ></el-button>
           <el-button
             type="danger"
@@ -60,51 +60,37 @@
       :total="total"
     ></el-pagination>
 
-    <!-- 添加用户弹框 -->
-    <el-dialog title="添加用户" :visible.sync="addDialogVisible" center @close="addDialogClosed">
-      <el-form :model="addForm" :rules="rules" ref="addForm">
+    <!-- 添加/编辑用户弹框 -->
+    <el-dialog
+      :title="operation==='add'?'添加用户':'编辑用户'"
+      :visible.sync="addAndEditDialogVisible"
+      center
+      @close="addAndEditDialogClosed"
+    >
+      <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="用户名" prop="username" label-width="100px">
-          <el-input v-model="addForm.username" autocomplete="off"></el-input>
+          <el-input v-model="form.username" :disabled="operation==='edit'" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password" label-width="100px">
-          <el-input type="password" v-model="addForm.password" autocomplete="off"></el-input>
+        <el-form-item v-if="operation==='add'" label="密码" prop="password" label-width="100px">
+          <el-input type="password" v-model="form.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email" label-width="100px">
-          <el-input v-model="addForm.email" autocomplete="off"></el-input>
+          <el-input v-model="form.email" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="电话" prop="mobile" label-width="100px">
-          <el-input v-model="addForm.mobile" autocomplete="off"></el-input>
+        <el-form-item label="手机号" prop="mobile" label-width="100px">
+          <el-input v-model="form.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addUser">确 定</el-button>
-      </div>
-    </el-dialog>
-
-    <!-- 编辑用户弹框 -->
-    <el-dialog title="编辑用户" :visible.sync="editDialogVisible" center>
-      <el-form :model="editForm" :rules="rules" ref="editForm">
-        <el-form-item label="用户名" label-width="100px">
-          <el-input v-model="editForm.username" disabled autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email" label-width="100px">
-          <el-input v-model="editForm.email" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话" prop="mobile" label-width="100px">
-          <el-input v-model="editForm.mobile" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editUser">确 定</el-button>
+        <el-button @click="addAndEditDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirm">确 定</el-button>
       </div>
     </el-dialog>
 
     <!-- 设置用户角色弹框 -->
     <el-dialog
       title="设置用户角色"
-      :visible.sync="setDialogVisible"
+      :visible.sync="settingDialogVisible"
       center
       width="30%"
       @close="setDialogClosed"
@@ -124,7 +110,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="setDialogVisible = false">取 消</el-button>
+        <el-button @click="settingDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="setRole">确 定</el-button>
       </div>
     </el-dialog>
@@ -159,8 +145,8 @@ export default {
       },
       total: 0,
       searchKey: '',
-      addDialogVisible: false,
-      addForm: {
+      addAndEditDialogVisible: false,
+      form: {
         username: '',
         password: '',
         email: '',
@@ -182,13 +168,7 @@ export default {
           { validator: checkMobile, trigger: 'change' },
         ],
       },
-      editDialogVisible: false,
-      editForm: {
-        username: '',
-        email: '',
-        mobile: '',
-      },
-      setDialogVisible: false,
+      settingDialogVisible: false,
       userInfo: {
         id: '',
         username: '',
@@ -196,6 +176,7 @@ export default {
       },
       rolesList: [],
       selectedRoleId: '',
+      operation: 'add',
     }
   },
   mounted() {
@@ -239,57 +220,57 @@ export default {
           this.$message.error('设置状态失败')
         })
     },
-    addUser() {
-      this.$refs['addForm'].validate((valid) => {
-        if (valid) {
-          this.$axios
-            .post('users', this.addForm)
-            .then(({ data: res }) => {
-              if (res.meta.status === 201) {
-                this.addDialogVisible = false
-                this.$message.success('创建成功')
-                this.queryUserList()
-              } else {
-                this.$message.error(res.meta.msg)
-              }
-            })
-            .catch(() => {
-              this.$message.error('创建失败')
-            })
+    openAddAndEditDialog(operation, row) {
+      if (operation === 'edit') {
+        this.form = {
+          id: row.id,
+          username: row.username,
+          email: row.email,
+          mobile: row.mobile,
         }
-      })
-    },
-    addDialogClosed() {
-      this.$refs.addForm.resetFields()
-    },
-    openEditDialog(row) {
-      this.editDialogVisible = true
-      this.editForm = {
-        id: row.id,
-        username: row.username,
-        email: row.email,
-        mobile: row.mobile,
       }
+      this.operation = operation
+      this.addAndEditDialogVisible = true
     },
-    editUser() {
-      this.$refs['editForm'].validate((valid) => {
+    confirm() {
+      this.$refs['form'].validate((valid) => {
         if (valid) {
-          this.$axios
-            .put(`users/${this.editForm.id}`, this.editForm)
-            .then(({ data: res }) => {
-              if (res.meta.status === 200) {
-                this.editDialogVisible = false
-                this.$message.success('更新成功')
-                this.queryUserList()
-              } else {
-                this.$message.error(re.meta.msg)
-              }
-            })
-            .catch(() => {
-              this.$message.error('更新失败')
-            })
+          if (this.operation === 'add') {
+            this.$axios
+              .post('users', this.form)
+              .then(({ data: res }) => {
+                if (res.meta.status === 201) {
+                  this.addAndEditDialogVisible = false
+                  this.$message.success('创建成功')
+                  this.queryUserList()
+                } else {
+                  this.$message.error(res.meta.msg)
+                }
+              })
+              .catch(() => {
+                this.$message.error('创建失败')
+              })
+          } else {
+            this.$axios
+              .put(`users/${this.form.id}`, this.form)
+              .then(({ data: res }) => {
+                if (res.meta.status === 200) {
+                  this.addAndEditDialogVisible = false
+                  this.$message.success('更新成功')
+                  this.queryUserList()
+                } else {
+                  this.$message.error(re.meta.msg)
+                }
+              })
+              .catch(() => {
+                this.$message.error('更新失败')
+              })
+          }
         }
       })
+    },
+    addAndEditDialogClosed() {
+      this.$refs.form.resetFields()
     },
     deleteUser(row) {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -320,7 +301,7 @@ export default {
       })
     },
     openSetDialog(row) {
-      this.setDialogVisible = true
+      this.settingDialogVisible = true
       this.userInfo = {
         id: row.id,
         username: row.username,
@@ -340,7 +321,7 @@ export default {
         })
         .then(({ data: res }) => {
           if (res.meta.status === 200) {
-            this.setDialogVisible = false
+            this.settingDialogVisible = false
             this.$message.success('设置角色成功')
             this.queryUserList()
           } else {
