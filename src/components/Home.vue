@@ -8,7 +8,7 @@
       <div class="header-right">
         <span>
           <i class="iconfont icon-user"></i>
-          &nbsp {{username}}
+          &nbsp {{ username }}
         </span>
         <el-divider direction="vertical"></el-divider>
         <span @click="logout">
@@ -21,7 +21,10 @@
     <el-container>
       <el-aside :width="isCollapse ? '64px' : '200px'">
         <div class="collapse-btn" @click="handleCollapse">
-          <i class="iconfont" :class="isCollapse ? 'icon-zhankai' : 'icon-shouqi'"></i>
+          <i
+            class="iconfont"
+            :class="isCollapse ? 'icon-zhankai' : 'icon-shouqi'"
+          ></i>
         </div>
         <el-menu
           background-color="#f6f5ec"
@@ -32,7 +35,11 @@
           router
           unique-opened
         >
-          <el-submenu v-for="menu in menuList" :key="menu.id" :index="menu.id + ''">
+          <el-submenu
+            v-for="menu in menuList"
+            :key="menu.id"
+            :index="menu.id + ''"
+          >
             <template slot="title">
               <i :class="iconList[menu.id]"></i>
               <span>{{ menu.authName }}</span>
@@ -54,7 +61,6 @@
         <el-main>
           <router-view></router-view>
         </el-main>
-        <el-footer>Footer</el-footer>
       </el-container>
     </el-container>
   </el-container>
@@ -75,29 +81,29 @@ export default {
       },
       isCollapse: false,
       username: '',
-    }
+    };
   },
   methods: {
     logout() {
-      window.sessionStorage.clear()
-      this.$router.push('/login')
+      window.sessionStorage.clear();
+      this.$router.push('/login');
     },
     getMenuList() {
       this.$axios.get('menus').then(({ data: res }) => {
         if (res.meta.status === 200) {
-          this.menuList = res.data
+          this.menuList = res.data;
         }
-      })
+      });
     },
     handleCollapse() {
-      this.isCollapse = !this.isCollapse
+      this.isCollapse = !this.isCollapse;
     },
   },
   created() {
-    this.username = window.sessionStorage.getItem('username')
-    this.getMenuList()
+    this.username = window.sessionStorage.getItem('username');
+    this.getMenuList();
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>

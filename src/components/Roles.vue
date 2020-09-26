@@ -7,11 +7,16 @@
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
       <el-table-column type="index" width="50"></el-table-column>
-      <el-table-column prop="roleName" label="角色名称" width="220"></el-table-column>
+      <el-table-column
+        prop="roleName"
+        label="角色名称"
+        width="220"
+      ></el-table-column>
       <el-table-column prop="roleDesc" label="角色描述"></el-table-column>
       <el-table-column prop="operation" label="操作" width="180">
         <template slot-scope="scope">
           <operation-btns
+            optType="extra"
             :data="scope.row"
             @editData="editRole"
             @deleteData="deleteRole"
@@ -22,7 +27,7 @@
     </el-table>
 
     <el-dialog
-      :title="operation==='add'?'添加角色':'编辑角色'"
+      :title="operation === 'add' ? '添加角色' : '编辑角色'"
       :visible.sync="addAndEditDialogVisible"
       center
       @close="addAndEditDialogClosed"

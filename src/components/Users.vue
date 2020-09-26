@@ -15,18 +15,30 @@
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
       <el-table-column type="index" width="50"></el-table-column>
-      <el-table-column prop="username" label="用户名" width="180"></el-table-column>
+      <el-table-column
+        prop="username"
+        label="用户名"
+        width="180"
+      ></el-table-column>
       <el-table-column prop="email" label="邮箱"></el-table-column>
       <el-table-column prop="mobile" label="手机号"></el-table-column>
-      <el-table-column prop="role_name" label="角色" width="180"></el-table-column>
+      <el-table-column
+        prop="role_name"
+        label="角色"
+        width="180"
+      ></el-table-column>
       <el-table-column prop="mg_state" label="状态" width="180">
         <template slot-scope="scope">
-          <el-switch v-model="scope.row.mg_state" @change="changeStatus(scope.row)"></el-switch>
+          <el-switch
+            v-model="scope.row.mg_state"
+            @change="changeStatus(scope.row)"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column prop="operation" label="操作" width="180">
         <template slot-scope="scope">
           <operation-btns
+            optType="extra"
             :data="scope.row"
             @editData="editUser"
             @deleteData="deleteUser"
@@ -47,17 +59,30 @@
 
     <!-- 添加/编辑用户弹框 -->
     <el-dialog
-      :title="operation==='add'?'添加用户':'编辑用户'"
+      :title="operation === 'add' ? '添加用户' : '编辑用户'"
       :visible.sync="addAndEditDialogVisible"
       center
       @close="addAndEditDialogClosed"
     >
       <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="用户名" prop="username" label-width="100px">
-          <el-input v-model="form.username" :disabled="operation==='edit'" autocomplete="off"></el-input>
+          <el-input
+            v-model="form.username"
+            :disabled="operation === 'edit'"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
-        <el-form-item v-if="operation==='add'" label="密码" prop="password" label-width="100px">
-          <el-input type="password" v-model="form.password" autocomplete="off"></el-input>
+        <el-form-item
+          v-if="operation === 'add'"
+          label="密码"
+          prop="password"
+          label-width="100px"
+        >
+          <el-input
+            type="password"
+            v-model="form.password"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email" label-width="100px">
           <el-input v-model="form.email" autocomplete="off"></el-input>
@@ -81,8 +106,12 @@
       @close="settingDialogClosed"
     >
       <el-form>
-        <el-form-item label="当前用户" label-width="100px">{{userInfo.username}}</el-form-item>
-        <el-form-item label="当前角色" label-width="100px">{{userInfo.role}}</el-form-item>
+        <el-form-item label="当前用户" label-width="100px">{{
+          userInfo.username
+        }}</el-form-item>
+        <el-form-item label="当前角色" label-width="100px">{{
+          userInfo.role
+        }}</el-form-item>
         <el-form-item label="设置新角色" label-width="100px">
           <el-select v-model="selectedRoleId" placeholder="请选择">
             <el-option

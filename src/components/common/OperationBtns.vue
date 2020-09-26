@@ -1,8 +1,27 @@
 <template>
   <div>
-    <el-button type="primary" icon="el-icon-edit" circle size="small" @click="editData(data)"></el-button>
-    <el-button type="danger" icon="el-icon-delete" circle size="small" @click="deleteData(data)"></el-button>
-    <el-button type="warning" icon="el-icon-setting" circle size="small" @click="setOther(data)"></el-button>
+    <el-button
+      type="primary"
+      icon="el-icon-edit"
+      circle
+      size="small"
+      @click="editData(data)"
+    ></el-button>
+    <el-button
+      type="danger"
+      icon="el-icon-delete"
+      circle
+      size="small"
+      @click="deleteData(data)"
+    ></el-button>
+    <el-button
+      v-if="optType === 'extra'"
+      type="warning"
+      icon="el-icon-setting"
+      circle
+      size="small"
+      @click="setOther(data)"
+    ></el-button>
   </div>
 </template>
 
@@ -13,6 +32,7 @@ export default {
   },
   props: {
     data: Object,
+    optType: String,
   },
   mounted() {},
   methods: {
