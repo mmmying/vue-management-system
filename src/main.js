@@ -31,7 +31,12 @@ import {
   Dialog,
   Select,
   Option,
-  MessageBox
+  MessageBox,
+  Steps,
+  Step,
+  Cascader,
+  Tabs,
+  TabPane
 } from 'element-ui';
 // Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }; // 全局配置
 Vue.use(Button);
@@ -57,6 +62,11 @@ Vue.use(Col);
 Vue.use(Dialog);
 Vue.use(Select);
 Vue.use(Option);
+Vue.use(Steps);
+Vue.use(Step);
+Vue.use(Cascader);
+Vue.use(Tabs);
+Vue.use(TabPane);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$confirm = MessageBox.confirm;
@@ -73,8 +83,9 @@ axios.interceptors.request.use(config => {
 });
 Vue.prototype.$axios = axios;
 
+// 过滤器
 Vue.filter('formatDate', function(val) {
-  const date = new Date(val);
+  const date = new Date(val * 1000);
   const year = date.getFullYear();
   const month = (date.getMonth() + 1 + '').padStart(2, '0');
   const day = (date.getDate() + '').padStart(2, '0');

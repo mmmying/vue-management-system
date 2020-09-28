@@ -27,3 +27,9 @@ body,
 .el-table {
   margin-top: 15px;
 }
+.bottom-btn-wrap {
+  text-align: center;
+}
+.el-cascader-menu {
+  height: 300px;
+}

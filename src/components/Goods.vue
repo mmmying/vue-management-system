@@ -95,16 +95,18 @@ export default {
       this.pagination.pageindex = val;
       this.queryGoodList();
     },
-    addGood() {},
+    addGood() {
+      this.$router.push('/goods/add');
+    },
     editUser(row) {},
     deleteUser(row) {
-      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
       }).then(() => {
         this.$axios
-          .delete(`users/${row.id}`)
+          .delete(`goods/${row.goods_id}`)
           .then(({ data: res }) => {
             if (res.meta.status === 200) {
               this.$message.success('删除成功');
