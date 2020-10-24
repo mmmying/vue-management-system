@@ -62,6 +62,11 @@ const router = new Router({
           component: AddGoods
         },
         {
+          path: '/goods/edit',
+          name: 'AddGoods',
+          component: AddGoods
+        },
+        {
           path: '/params',
           name: 'Params',
           component: Params

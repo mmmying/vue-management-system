@@ -10,7 +10,7 @@
         ></el-input>
       </el-col>
       <el-col :span="12">
-        <el-button type="primary" @click="addGood()">添加商品</el-button>
+        <el-button type="primary" @click="addGoods()">添加商品</el-button>
       </el-col>
     </el-row>
     <el-table :data="tableData" stripe border style="width: 100%">
@@ -35,8 +35,8 @@
         <template slot-scope="scope">
           <operation-btns
             :data="scope.row"
-            @editData="editUser"
-            @deleteData="deleteUser"
+            @editData="editGoods"
+            @deleteData="deleteGoods"
           ></operation-btns>
         </template>
       </el-table-column>
@@ -95,11 +95,13 @@ export default {
       this.pagination.pageindex = val;
       this.queryGoodList();
     },
-    addGood() {
+    addGoods() {
       this.$router.push('/goods/add');
     },
-    editUser(row) {},
-    deleteUser(row) {
+    editGoods(row) {
+      this.$router.push({ path: '/goods/edit', query: row });
+    },
+    deleteGoods(row) {
       this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
