@@ -2,7 +2,7 @@
   <div>
     <el-row>
       <el-col>
-        <el-button type="primary" @click="addCategory">添加类目</el-button>
+        <el-button type="primary" @click="addCategory">添加分类</el-button>
       </el-col>
     </el-row>
     <el-table
@@ -56,7 +56,7 @@
     ></el-pagination>
 
     <el-dialog
-      :title="operation === 'add' ? '添加类目' : '编辑类目'"
+      :title="operation === 'add' ? '添加分类' : '编辑分类'"
       :visible.sync="addAndEditDialogVisible"
       center
       @close="addAndEditDialogClosed"
@@ -65,12 +65,16 @@
         <el-form-item label="分类名称" prop="cat_name" label-width="100px">
           <el-input v-model="form.cat_name"></el-input>
         </el-form-item>
-        <el-form-item label="父级分类" prop="parent" label-width="100px">
+        <el-form-item
+          v-if="operation === 'add'"
+          label="父级分类"
+          prop="parent"
+          label-width="100px"
+        >
           <el-cascader
-            v-model="selectedVal"
+            v-model="form.parent"
             :options="parentList"
             :props="cascaderProps"
-            @change="changeSelected"
             clearable
           ></el-cascader>
         </el-form-item>
@@ -96,15 +100,13 @@ export default {
       total: 0,
       addAndEditDialogVisible: false,
       form: {
+        cat_id: '',
         cat_name: '',
-        parent: '',
+        parent: [],
       },
       rules: {
         cat_name: [
-          { required: true, message: '请输入类目名称', trigger: 'change' },
-        ],
-        parent: [
-          { required: true, message: '请选择父级类目', trigger: 'change' },
+          { required: true, message: '请输入分类名称', trigger: 'change' },
         ],
       },
       operation: '',
@@ -115,6 +117,7 @@ export default {
         label: 'cat_name',
         children: 'children',
         expandTrigger: 'hover',
+        checkStrictly: true,
       },
     };
   },
@@ -153,15 +156,14 @@ export default {
       this.queryAllCategoryList();
     },
     editCategory(row) {
-      this.form = {
-        roleName: row.roleName,
-        roleDesc: row.roleDesc,
-      };
+      console.log('edit', row);
+      this.form.cat_id = row.cat_id;
+      this.form.cat_name = row.cat_name;
       this.operation = 'edit';
       this.addAndEditDialogVisible = true;
     },
     deleteCategory(row) {
-      this.$confirm('此操作将永久删除该类目与其子类目, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除该分类与其子分类, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
@@ -171,6 +173,7 @@ export default {
           .then(({ data: res }) => {
             if (res.meta.status === 200) {
               this.$message.success('删除成功');
+              this.pagination.pageindex = 1;
               this.queryCategoryList();
             } else {
               this.$message.error(res.meta.msg);
@@ -186,7 +189,11 @@ export default {
         if (valid) {
           if (this.operation === 'add') {
             this.$axios
-              .post('categories', this.form)
+              .post('categories', {
+                cat_pid: this.form.parent[this.form.parent.length - 1] || 0,
+                cat_name: this.form.cat_name,
+                cat_level: this.form.parent.length,
+              })
               .then(({ data: res }) => {
                 if (res.meta.status === 201) {
                   this.addAndEditDialogVisible = false;
@@ -201,7 +208,9 @@ export default {
               });
           } else {
             this.$axios
-              .put(`roles/${this.form.id}`, this.form)
+              .put(`categories/${this.form.cat_id}`, {
+                cat_name: this.form.cat_name,
+              })
               .then(({ data: res }) => {
                 if (res.meta.status === 200) {
                   this.addAndEditDialogVisible = false;
@@ -229,9 +238,6 @@ export default {
     handleCurrentChange(val) {
       this.pagination.pageindex = val;
       this.queryCategoryList();
-    },
-    changeSelected(val) {
-      console.log('change', val);
     },
   },
 };
