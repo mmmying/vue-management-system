@@ -30,7 +30,7 @@
       :title="operation === 'add' ? '添加角色' : '编辑角色'"
       :visible.sync="addAndEditDialogVisible"
       center
-      @close="addAndEditDialogClosed"
+      @close="addAndEditDialogClose"
     >
       <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="角色名称" prop="roleName" label-width="100px">
@@ -45,6 +45,23 @@
         <el-button type="primary" @click="confirm">确 定</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog title="分配权限" :visible.sync="setAuthDialogVisible" center>
+      <el-tree
+        ref="tree"
+        :data="treeData"
+        show-checkbox
+        default-expand-all
+        node-key="id"
+        highlight-current
+        :props="treeProps"
+      >
+      </el-tree>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="setAuthDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmToSetAuth">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -56,6 +73,7 @@ export default {
       tableData: [],
       total: 0,
       addAndEditDialogVisible: false,
+      setAuthDialogVisible: false,
       form: {
         roleName: '',
         roleDesc: '',
@@ -69,17 +87,35 @@ export default {
         ],
       },
       operation: '',
+      treeData: [],
+      treeProps: {
+        label: 'authName',
+      },
+      defaultChecked: [],
+      checkedArr: [],
+      rowData: {},
     };
   },
   components: { OperationBtns },
   mounted() {
     this.queryRoleList();
+    this.queryRightList();
   },
   methods: {
     queryRoleList() {
       this.$axios.get('roles').then(({ data: res }) => {
         this.tableData = res.data;
         this.total = res.data.length;
+
+        this.tableData.forEach((item) => {
+          if (!item.children.length) {
+            item.checked = [];
+            return;
+          }
+          this.recursion(item.children);
+          item.checked = this.checkedArr;
+          this.checkedArr = [];
+        });
       });
     },
     addRole() {
@@ -115,7 +151,14 @@ export default {
           });
       });
     },
-    setAuth() {},
+    setAuth(val) {
+      this.setAuthDialogVisible = true;
+      this.defaultChecked = val.checked;
+      this.rowData = val;
+      this.$nextTick(() => {
+        this.$refs.tree.setCheckedKeys(this.defaultChecked);
+      });
+    },
     confirm() {
       this.$refs['form'].validate((valid) => {
         if (valid) {
@@ -153,8 +196,42 @@ export default {
         }
       });
     },
-    addAndEditDialogClosed() {
+    addAndEditDialogClose() {
       this.$refs.form.resetFields();
+    },
+    queryRightList() {
+      this.$axios.get('rights/tree', {}).then(({ data: res }) => {
+        this.treeData = res.data;
+      });
+    },
+    recursion(arr) {
+      arr.forEach((item) => {
+        if (item.children) {
+          this.recursion(item.children);
+        } else {
+          this.checkedArr.push(item.id);
+        }
+      });
+    },
+    confirmToSetAuth() {
+      const checkdKeys = this.$refs.tree.getCheckedKeys();
+      const halfCheckedKeys = this.$refs.tree.getHalfCheckedKeys();
+      this.$axios
+        .post(`roles/${this.rowData.id}/rights`, {
+          rids: [...checkdKeys, ...halfCheckedKeys].join(','),
+        })
+        .then(({ data: res }) => {
+          if (res.meta.status === 200) {
+            this.setAuthDialogVisible = false;
+            this.$message.success('设置权限成功');
+            this.queryRoleList();
+          } else {
+            this.$message.error(res.meta.msg);
+          }
+        })
+        .catch(() => {
+          this.$message.error('设置权限失败');
+        });
     },
   },
 };

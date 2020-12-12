@@ -37,7 +37,8 @@ import {
   Cascader,
   Tabs,
   TabPane,
-  Tag
+  Tag,
+  Tree
 } from 'element-ui';
 // Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }; // 全局配置
 Vue.use(Button);
@@ -69,6 +70,7 @@ Vue.use(Cascader);
 Vue.use(Tabs);
 Vue.use(TabPane);
 Vue.use(Tag);
+Vue.use(Tree);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$confirm = MessageBox.confirm;
